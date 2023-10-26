@@ -35,7 +35,7 @@ public class UserEntity {
     }
 
     public String getUsername() {
-        return firstname;
+        return username;
     }
 
     public void setUsername(String firstname) {

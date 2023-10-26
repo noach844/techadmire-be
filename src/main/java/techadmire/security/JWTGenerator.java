@@ -7,8 +7,10 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
+import java.util.TimeZone;
 
 @Component
 public class JWTGenerator {
@@ -29,6 +31,10 @@ public class JWTGenerator {
     public String getUsernameFromJWT(String token){
         Claims claims = Jwts.parser().setSigningKey(SecurityConstants.JWT_SECRET.getBytes()).parseClaimsJws(token).getBody();
         return claims.getSubject();
+    }
+
+    public Date getExpirationDateFromJWT(String token){
+        return Jwts.parser().setSigningKey(SecurityConstants.JWT_SECRET.getBytes()).parseClaimsJws(token).getBody().getExpiration();
     }
 
     public boolean validateToken(String token){

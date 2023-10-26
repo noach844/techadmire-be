@@ -9,16 +9,17 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import techadmire.dto.AuthResponseDTO;
 import techadmire.dto.LoginDTO;
 import techadmire.dto.RegisterDTO;
 import techadmire.models.UserEntity;
 import techadmire.repositories.UsersRepository;
+import techadmire.security.CustomUserDetailsService;
 import techadmire.security.JWTGenerator;
+
+import java.util.Date;
+import java.util.Optional;
 
 @RestController()
 @RequestMapping("auth")
@@ -44,7 +45,8 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String token = jwtGenerator.generateToken(authentication);
-        return new ResponseEntity<>(new AuthResponseDTO(token), HttpStatus.OK);
+        Date expiration = jwtGenerator.getExpirationDateFromJWT(token);
+        return new ResponseEntity<>(new AuthResponseDTO(token, expiration), HttpStatus.OK);
     }
 
     @PostMapping("register")
@@ -53,5 +55,12 @@ public class AuthController {
                 new UserEntity(registerDTO.getUsername(), registerDTO.getFirstname(), registerDTO.getLastname(), passwordEncoder.encode(registerDTO.getPassword()));
         usersRepository.save(userEntity);
         return new ResponseEntity<>("success", HttpStatus.OK);
+    }
+
+    @GetMapping("user-details")
+    public  ResponseEntity<Optional<UserEntity>> getUser(@RequestHeader("Authorization") String authorizationHeader){
+        String username =jwtGenerator.getUsernameFromJWT(authorizationHeader.split(" ")[1]);
+        Optional<UserEntity> user = usersRepository.findByUsername(username);
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 }
