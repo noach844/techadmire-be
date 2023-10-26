@@ -3,13 +3,10 @@ package techadmire.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-public class User{
+public class UserEntity {
 
     @Id
     @GeneratedValue
@@ -28,30 +25,13 @@ public class User{
     @Column(nullable = false)
     public String password;
 
-    @JsonIgnore
-    @Column
-    private String salt;
+    public UserEntity() {}
 
-    public User() {}
-
-    public User(String username, String firstname, String lastname, String password) {
+    public UserEntity(String username, String firstname, String lastname, String password) {
         this.username = username;
         this.firstname = firstname;
         this.lastname = lastname;
-        this.salt = UUID.randomUUID().toString();
-        this.password = new BCryptPasswordEncoder().encode(password + this.salt);
-    }
-
-
-
-    @JsonIgnore
-    public String getSalt() {
-        return salt;
-    }
-
-    @JsonProperty
-    public void setSalt(String salt) {
-        this.salt = salt;
+        this.password = password;
     }
 
     public String getUsername() {
