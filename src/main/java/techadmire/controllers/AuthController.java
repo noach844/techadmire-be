@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import techadmire.Services.AuthService;
 import techadmire.dto.AuthResponseDTO;
 import techadmire.dto.LoginDTO;
 import techadmire.dto.RegisterDTO;
@@ -24,43 +25,31 @@ import java.util.Optional;
 @RestController()
 @RequestMapping("auth")
 public class AuthController {
-    private UsersRepository usersRepository;
-    private AuthenticationManager authenticationManager;
-    private JWTGenerator jwtGenerator;
-    private PasswordEncoder passwordEncoder;
+    private final AuthService authService;
+    private final JWTGenerator jwtGenerator;
 
     @Autowired
-    public AuthController(UsersRepository usersRepository, AuthenticationManager authenticationManager,
-                          PasswordEncoder passwordEncoder, JWTGenerator jwtGenerator) {
-        this.usersRepository = usersRepository;
-        this.authenticationManager = authenticationManager;
-        this.passwordEncoder = passwordEncoder;
+    public AuthController(AuthService authService, JWTGenerator jwtGenerator) {
+        this.authService = authService;
         this.jwtGenerator = jwtGenerator;
     }
 
     @PostMapping("login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDTO loginDTO) throws Exception {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String token = jwtGenerator.generateToken(authentication);
-        Date expiration = jwtGenerator.getExpirationDateFromJWT(token);
-        return new ResponseEntity<>(new AuthResponseDTO(token, expiration), HttpStatus.OK);
+        AuthResponseDTO res = this.authService.authUser(loginDTO);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @PostMapping("register")
     public ResponseEntity<String> signup(@RequestBody RegisterDTO registerDTO) throws Exception {
-        UserEntity userEntity =
-                new UserEntity(registerDTO.getUsername(), registerDTO.getFirstname(), registerDTO.getLastname(), passwordEncoder.encode(registerDTO.getPassword()));
-        usersRepository.save(userEntity);
-        return new ResponseEntity<>("success", HttpStatus.OK);
+        String res = this.authService.createUser(registerDTO);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @GetMapping("user-details")
     public  ResponseEntity<Optional<UserEntity>> getUser(@RequestHeader("Authorization") String authorizationHeader){
-        String username =jwtGenerator.getUsernameFromJWT(authorizationHeader.split(" ")[1]);
-        Optional<UserEntity> user = usersRepository.findByUsername(username);
+        String username =jwtGenerator.getUsernameFromJWT(authorizationHeader.substring(7, authorizationHeader.length()));
+        Optional<UserEntity> user = this.authService.findUser(username);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 }

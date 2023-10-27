@@ -1,8 +1,12 @@
 package techadmire.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -24,6 +28,12 @@ public class UserEntity {
     @JsonIgnore
     @Column(nullable = false)
     public String password;
+
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference
+    private List<ApplicationEntity> applications = new ArrayList<>();
+
+
 
     public UserEntity() {}
 
@@ -76,4 +86,12 @@ public class UserEntity {
         this.password = password;
     }
 
+
+    public List<ApplicationEntity> getApplications() {
+        return applications;
+    }
+
+    public void setApplications(List<ApplicationEntity> applications) {
+        this.applications = applications;
+    }
 }
