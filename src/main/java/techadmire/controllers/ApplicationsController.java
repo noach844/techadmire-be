@@ -40,6 +40,6 @@ public class ApplicationsController {
     public ResponseEntity<List<ApplicationEntity>> getApplications(@RequestHeader("Authorization") String authorizationHeader) {
         String username = jwtGenerator.getUsernameFromJWT(authorizationHeader.substring(7, authorizationHeader.length()));
         List<ApplicationEntity> res = this.applicationsService.findApplicationsByUser(username);
-        return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 }
